@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class PlayerController : MonoBehaviour
+
+public class PlayerController : MonoBehaviourPun
 {
     const float speed = 5;
     const float throwForceForward = 10, throwForceUp = 5;
@@ -24,50 +26,64 @@ public class PlayerController : MonoBehaviour
     [SerializeField, Range(0f, 500f)]
     float mouseSensitivity;
 
-    private void Awake()
+    bool controllerOn = true;
+
+    [PunRPC]
+    private void Initialize()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        characterController = GetComponent<CharacterController>();
-        camTransform = GetComponentInChildren<Camera>().transform;
-        playerGravity = GetComponent<PlayerGravity>();
+        if (!photonView.IsMine)
+        {
+            GetComponentInChildren<Camera>().enabled = false;
+            controllerOn = false;
+        }
     }
 
-    // Update is called once per frame
+    private void Awake()
+    {
+            Cursor.lockState = CursorLockMode.Locked;
+            characterController = GetComponent<CharacterController>();
+            camTransform = GetComponentInChildren<Camera>().transform;
+            playerGravity = GetComponent<PlayerGravity>();
+    }
     void Update()
     {
-        direction.x = Input.GetAxis("Horizontal");
-        direction.z = Input.GetAxis("Vertical");
-        camDirection.x = Input.GetAxis("Mouse X");
-        camDirection.y = Input.GetAxis("Mouse Y");
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (controllerOn)
         {
-            Jump();
-        }
+            direction.x = Input.GetAxis("Horizontal");
+            direction.z = Input.GetAxis("Vertical");
+            camDirection.x = Input.GetAxis("Mouse X");
+            camDirection.y = Input.GetAxis("Mouse Y");
 
-        if (Input.GetKeyDown(KeyCode.G))
-        {
-            ThrowGrenade();
-        }
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                Jump();
+            }
 
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            Crounch();
-        }
+            if (Input.GetKeyDown(KeyCode.G))
+            {
+                ThrowGrenade();
+            }
 
-        if (Input.GetKeyDown(KeyCode.Mouse0))
-        {
-            shooting = true;
-        }
+            if (Input.GetKeyDown(KeyCode.C))
+            {
+                Crounch();
+            }
 
-        if (Input.GetKeyUp(KeyCode.C))
-        {
-            shooting = false;
-        }
+            if (Input.GetKeyDown(KeyCode.Mouse0))
+            {
+                shooting = true;
+            }
 
-        Movement();
-        Rotation();
-        //Fire();
+            if (Input.GetKeyUp(KeyCode.C))
+            {
+                shooting = false;
+            }
+
+            Movement();
+            Rotation();
+            //Fire();
+        }
     }
 
     void Movement()
